@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%"
+     viewBox="0 0  1046 520" preserveAspectRatio="xMidYMid meet" zoomAndPan="disable">
+    <defs id="svgEditorDefs">
+        <path id="svgEditorClosePathDefs" stroke="black" fill="khaki"
+              style="stroke-width: 1px; vector-effect: non-scaling-stroke;"/>
+    </defs>
+    <rect id="svgEditorBackground" x="0" y="0" width="1046" height="520" style="fill: none; stroke: none;"/>
+    <path stroke="black" id="e2_shape" style="vector-effect: non-scaling-stroke; stroke-width: 1px;" fill="#124234"
+          transform="matrix(27.0476 0 0 27.0476 234.924 306.681)"
+          d="M 9.95774 -4.64436 l -1.25 -1.5625 v 1.25 a 8 8 0 0 0 -6.25 6 a 2 2 0 0 1 3.125 0.625 a 4.6 4.6 0 0 1 3.125 -5.875 v 1.25 Z"/>
+</svg>

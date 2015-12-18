@@ -126,7 +126,9 @@ def pack_bot_step(run_number, time_frame, direction):
 # and to
 #   Client to Hunter message
 
-def pack_request_for_step(run_number, time_frame, position):
+# direction is fictive for NyanCatBot
+
+def pack_request_for_step(run_number, time_frame, direction, position):
     assert isinstance(run_number, int)
     assert isinstance(time_frame, int)
     # and assert position is correct
@@ -135,6 +137,7 @@ def pack_request_for_step(run_number, time_frame, position):
     d = {
         RUN_NUMBER: run_number,
         TIME_FRAME: time_frame,
+        DIRECTION: direction,
         CUR_X: position.x,
         CUR_Y: position.y
     }

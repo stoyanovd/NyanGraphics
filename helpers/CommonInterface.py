@@ -14,21 +14,31 @@ class GAME_CONF:
 
     REPEATS_NUMBER = 4
 
+    FIELD_SIZE = 16
 
-CAT = "cat"
-HUNTER = "hunter"
+
+CAT = "cat"  # not in use at the moment
+HUNTER = "hunter"  # not in use at the moment
 
 INIT = "init"
+GAME_MAP = "game_map"
+
 RUN_NUMBER = "run_number"
+CAT_BOT_NAME = "cat_bot_name"
+
+STEPS_NUMBER = "steps_number"
+FIELD_SIZE = 'field_size'
+
+TELEPORTS = "teleports"
+
+FROM_X = "from_x"
+FROM_Y = "from_y"
+TO_X = "to_x"
+TO_Y = "to_y"
 
 TIME_FRAME = "time_frame"
+
 DIRECTION = "direction"
-
-CAT_BOT_NAME = "cat_bot_name"
-STEPS_NUMBER = "steps_number"
-
-GAME_MAP = "game_map"
-TELEPORTS = "teleports"
 
 LEFT = 'LEFT'
 RIGHT = 'RIGHT'
@@ -36,11 +46,10 @@ DOWN = 'DOWN'
 UP = 'UP'
 TELEPORT = 'TELEPORT'
 
-FROM_X = "from_x"
-FROM_Y = "from_y"
-TO_X = "to_x"
-TO_Y = "to_y"
 
+# Coordinates go from 0
+# e.g from (0, 0) to (15, 15)
+# Zero coordinates are in LEFT-UP corner
 
 # LOOK HERE!                               local          UDP multicast           local
 # We have such connections:   NyanCatBot <-------> Server --------------> Client <-------> HunterBot
@@ -62,6 +71,7 @@ def pack_init(run_number, game_map, cat):
                 RUN_NUMBER: run_number,
                 CAT_BOT_NAME: cat.bot_name,
                 STEPS_NUMBER: GAME_CONF.STEPS_NUMBER,
+                FIELD_SIZE: GAME_CONF.FIELD_SIZE,
                 GAME_MAP:
                     {
                         TELEPORTS:

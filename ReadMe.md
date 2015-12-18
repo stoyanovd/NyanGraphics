@@ -50,8 +50,8 @@ Visualizer (Dima's) part
   ```sudo pip3 install --upgrade pip```  
 
 2.5 We need numpy and Cython (make it not through apt-get!):  
-  ```pip3 install numpy```
-  ```pip3 install Cython```
+  ```sudo -H pip3 install numpy```
+  ```sudo -H pip3 install Cython```
   
 3. **PyCharm** - sth will be easier with it  
   Community Edition will be enough (nearly 130 MB)  

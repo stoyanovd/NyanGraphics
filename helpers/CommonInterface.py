@@ -1,4 +1,4 @@
-import yaml
+import json
 
 
 class GAME_CONF:
@@ -78,7 +78,7 @@ def pack_init(run_number, game_map, cat):
                     }
             }
     }
-    yaml.dump(d, s)
+    json.dump(d, s)
     return s
 
 
@@ -100,5 +100,5 @@ def pack_step(run_number, time_frame, direction):
         DIRECTION: direction,
     }
 
-    yaml.dump(d, s)
+    json.dump(d, s)
     return s

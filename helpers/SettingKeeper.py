@@ -1,8 +1,8 @@
+from helpers import CommonInterface
 from helpers.Point import Point
 
 
 class SK:
-    FIELD_SIZE = 4
     FPS = 60.0
 
     CELL_SQ = 150
@@ -12,18 +12,10 @@ class SK:
     sq = 1200
     MINIMUM_WINDOW_SIZE = (sq, sq)
 
-    LEFT = 'LEFT'
-    RIGHT = 'RIGHT'
-    DOWN = 'DOWN'
-    UP = 'UP'
-    TELEPORT = 'TELEPORT'
-
     STEPS = {
-        LEFT: Point([-1, 0]),
-        RIGHT: Point([1, 0]),
-        DOWN: Point([0, 1]),
-        UP: Point([0, -1]),
-        TELEPORT: None
+        CommonInterface.LEFT: Point([-1, 0]),
+        CommonInterface.RIGHT: Point([1, 0]),
+        CommonInterface.DOWN: Point([0, 1]),
+        CommonInterface.UP: Point([0, -1]),
+        CommonInterface.TELEPORT: None
     }
-
-

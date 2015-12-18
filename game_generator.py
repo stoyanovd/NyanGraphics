@@ -5,17 +5,17 @@ from helpers.CommonInterface import GAME_CONF
 from helpers.Point import Point
 from helpers.SettingKeeper import SK
 
+FIELD_SIZE = GAME_CONF.FIELD_SIZE
+assert FIELD_SIZE > 5
+
 
 def cell_is_correct(p):
-    return (0 < p.x <= SK.FIELD_SIZE) and (0 < p.y <= SK.FIELD_SIZE)
+    return (0 <= p.x < FIELD_SIZE) and (0 <= p.y < FIELD_SIZE)
 
 
 class GameMap:
     def __init__(self, teleports=None):
         self.teleports = teleports
-
-
-assert SK.FIELD_SIZE > 5
 
 
 class ServerSender:

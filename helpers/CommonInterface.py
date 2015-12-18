@@ -31,6 +31,7 @@ FIELD_SIZE = 'field_size'
 
 TELEPORTS = "teleports"
 
+# no two teleports FROM one cell
 FROM_X = "from_x"
 FROM_Y = "from_y"
 TO_X = "to_x"
@@ -45,6 +46,9 @@ RIGHT = 'RIGHT'
 DOWN = 'DOWN'
 UP = 'UP'
 TELEPORT = 'TELEPORT'
+
+CUR_X = 'cur_x'
+CUR_Y = 'cur_y'
 
 
 # Coordinates go from 0
@@ -92,13 +96,12 @@ def pack_init(run_number, game_map, cat):
     return s
 
 
-# message about step
 # common format for
 #   NyanCat to Server message (forward it to Client, and than to HunterBot)
 # and to
 #   Hunter to Client message
 
-def pack_step(run_number, time_frame, direction):
+def pack_bot_step(run_number, time_frame, direction):
     assert isinstance(run_number, int)
     assert isinstance(time_frame, int)
     assert direction in [LEFT, RIGHT, DOWN, UP, TELEPORT]
@@ -108,6 +111,32 @@ def pack_step(run_number, time_frame, direction):
         RUN_NUMBER: run_number,
         TIME_FRAME: time_frame,
         DIRECTION: direction,
+    }
+
+    json.dump(d, s)
+    return s
+
+
+# Bot can send not correct direction - in this case, his step will not be made by client/server.
+# and in next request Bot will learn it.
+
+# request for step
+# common format for
+#   Server to NyanCat message
+# and to
+#   Client to Hunter message
+
+def pack_request_for_step(run_number, time_frame, position):
+    assert isinstance(run_number, int)
+    assert isinstance(time_frame, int)
+    # and assert position is correct
+
+    s = b""
+    d = {
+        RUN_NUMBER: run_number,
+        TIME_FRAME: time_frame,
+        CUR_X: position.x,
+        CUR_Y: position.y
     }
 
     json.dump(d, s)

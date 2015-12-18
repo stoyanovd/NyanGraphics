@@ -8,20 +8,21 @@ How to start
 
 1. Kostya's client: https://github.com/Martoon-00/nyan-cat-chase
 
-2. This visualizer
+2. (This) Dima's visualizer
 
-3. Run them together through unix pipe.
+3. Run client and visualizer together through unix pipe.
 
 ------------------------
 
 **Linux!!!**  
 You must have Linux!  
+
 we have problems with successful connection between Windows and Linux clients in one net
 and there is no time to solve it now
 
 
 Client (Kostya's) part
------------
+----------------------
 
 1. Clone Kostya's repository:  
 ```git clone https://github.com/Martoon-00/nyan-cat-chase```  
@@ -32,8 +33,10 @@ Client (Kostya's) part
 
 4. Try run `HunterSillyPlayer`
 
+
 Visualizer (Dima's) part
--------------------
+------------------------
+
 0. ```sudo apt-get update```
 
 1. ```python3 --version``` must be 3.4

@@ -10,7 +10,6 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
-
 from helpers.CommonInterface import GAME_CONF
 from helpers.SettingKeeper import SK
 
@@ -44,14 +43,14 @@ class NyanGame(BoxLayout):
     cur_direction = None
 
     def get_status_string(self):
-        return 'Time:   frame number: %7d    second: %8.2f' % (
-            self.status_time, self.status_time / SK.FPS) + ' | ' + str(self.input_query) + ' |' + 'cur_dir: ' + str(
-            self.cur_direction)
+        return ['Time', '_____', 'frame №', '{0:7d}'.format(self.status_time),
+                '_________________', 'second №', '{0:8.2f}'.format(self.status_time / SK.FPS),
+                ' | ' + str(self.input_query) + ' |', 'cur_dir: ' + str(self.cur_direction)]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.status_time_label = Label(text=self.get_status_string(),
-                                       size_hint_y=2)
+        self.status_layout = BoxLayout(orientation='vertical', size_hint_x=2)
+        self.update_status()
         self.serve_fields()
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self, 'text')
         if self._keyboard.widget:
@@ -59,6 +58,12 @@ class NyanGame(BoxLayout):
             # to change the keyboard layout.
             pass
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
+
+    def update_status(self):
+        res = self.get_status_string()
+        self.status_layout = BoxLayout(orientation='vertical', size_hint_x=2)
+        for line in res:
+            self.status_layout.add_widget(Label(text=line))
 
     def _keyboard_closed(self):
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
@@ -75,7 +80,7 @@ class NyanGame(BoxLayout):
 
     def serve_fields(self):
         field_layout = GridLayout(cols=GAME_CONF.FIELD_SIZE, rows=GAME_CONF.FIELD_SIZE,
-                                  size_hint_y=20)
+                                  size_hint_x=20)
 
         for i in range(GAME_CONF.FIELD_SIZE):
             for j in range(GAME_CONF.FIELD_SIZE):
@@ -83,22 +88,22 @@ class NyanGame(BoxLayout):
                 field_layout.add_widget(self.fields[i][j])
 
         self.width, self.height = Window.size
-        vertical_layout = BoxLayout(orientation='vertical')
-        # vertical_layout.width, vertical_layout.height = Window.size
+        horizontal_layout = BoxLayout(orientation='horizontal')
+        # horizontal_layout.width, horizontal_layout.height = Window.size
 
         with self.canvas.before:
             Color(1, 0, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
-        vertical_layout.add_widget(
-            Label(text='Nyan Cat Game', size_hint_y=2))
+        horizontal_layout.add_widget(
+            Label(text='Nyan', size_hint_x=2))
 
-        vertical_layout.add_widget(field_layout)
-        vertical_layout.add_widget(Button(text='Actions', size_hint_y=3))
-        vertical_layout.add_widget(self.status_time_label)
-        self.add_widget(vertical_layout)
+        horizontal_layout.add_widget(field_layout)
+        horizontal_layout.add_widget(Button(text='Actions', size_hint_x=3))
+        horizontal_layout.add_widget(self.status_layout)
+        self.add_widget(horizontal_layout)
         print('self:', self.x, self.y, self.width, self.height)
-        print('vert:', vertical_layout.x, vertical_layout.y, vertical_layout.width, vertical_layout.height)
+        print('vert:', horizontal_layout.x, horizontal_layout.y, horizontal_layout.width, horizontal_layout.height)
         print('grid:', field_layout.x, field_layout.y, field_layout.width, field_layout.height)
         cell = self.fields[0][0]
         print('cell:', cell.x, cell.y, cell.width, cell.height)
@@ -107,7 +112,7 @@ class NyanGame(BoxLayout):
 
     def update(self, t):
         self.status_time += 1
-        self.status_time_label.text = self.get_status_string()
+        self.update_status()
 
     def read_input_data(self, t):
         if not select.select([sys.stdin, ], [], [], 0.0)[0]:

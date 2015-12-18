@@ -9,8 +9,7 @@ class SK:
     CELL_HEIGHT = CELL_SQ
     CELL_WIDTH = CELL_SQ
 
-    sq = 1200
-    MINIMUM_WINDOW_SIZE = (sq, sq)
+    MINIMUM_WINDOW_SIZE = (1600, 1200)
 
     STEPS = {
         CommonInterface.LEFT: Point([-1, 0]),

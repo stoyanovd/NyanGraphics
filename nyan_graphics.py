@@ -10,7 +10,9 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.widget import Widget
-from helpers.SettingKeeper import SK, AF
+
+from helpers.CommonInterface import GAME_CONF
+from helpers.SettingKeeper import SK
 
 
 class ColorFiller(Label):
@@ -36,7 +38,7 @@ class NyanCell(BoxLayout):
 
 
 class NyanGame(BoxLayout):
-    fields = [[None for i in range(SK.FIELD_SIZE)] for j in range(SK.FIELD_SIZE)]
+    fields = [[None for i in range(GAME_CONF.FIELD_SIZE)] for j in range(GAME_CONF.FIELD_SIZE)]
     status_time = 1
     input_query = [0]
     cur_direction = None
@@ -72,11 +74,11 @@ class NyanGame(BoxLayout):
         return True
 
     def serve_fields(self):
-        field_layout = GridLayout(cols=SK.FIELD_SIZE, rows=SK.FIELD_SIZE,
+        field_layout = GridLayout(cols=GAME_CONF.FIELD_SIZE, rows=GAME_CONF.FIELD_SIZE,
                                   size_hint_y=20)
 
-        for i in range(SK.FIELD_SIZE):
-            for j in range(SK.FIELD_SIZE):
+        for i in range(GAME_CONF.FIELD_SIZE):
+            for j in range(GAME_CONF.FIELD_SIZE):
                 self.fields[i][j] = NyanCell(nyan_pos=(i, j))
                 field_layout.add_widget(self.fields[i][j])
 

@@ -15,6 +15,7 @@ class GAME_CONF:
     REPEATS_NUMBER = 4
 
     FIELD_SIZE = 16
+    assert 4 <= FIELD_SIZE <= 20
 
 
 CAT = "cat"  # not in use at the moment

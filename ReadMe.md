@@ -56,3 +56,12 @@ Visualizer (Dima's) part
   ```sudo add-apt-repository ppa:kivy-team/kivy```  
   ```sudo apt-get update```  
   ```sudo apt-get install python3-kivy```  
+
+4. git clone this repo  
+  ```git clone https://github.com/stoyanovd/NyanGraphics```
+
+5. if PyCharm don't resolve Kivy:  
+  PyCharm -> File -> Settings -> Project -> Project Interpreter -> the very first menu:  
+  check that you use python 3.4 as interpreter, not python 2.7
+
+6. run `nyan_graphics.py` (check at least running)

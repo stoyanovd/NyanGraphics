@@ -1,16 +1,13 @@
 import pickle
 import random
-
+from helpers import CommonInterface
 from helpers.CommonInterface import GAME_CONF
 from helpers.Point import Point
 from helpers.SettingKeeper import SK
 
-FIELD_SIZE = GAME_CONF.FIELD_SIZE
-assert FIELD_SIZE > 5
-
 
 def cell_is_correct(p):
-    return (0 <= p.x < FIELD_SIZE) and (0 <= p.y < FIELD_SIZE)
+    return (0 <= p.x < GAME_CONF.FIELD_SIZE) and (0 <= p.y < GAME_CONF.FIELD_SIZE)
 
 
 class GameMap:
@@ -22,32 +19,27 @@ class ServerSender:
     def __init__(self):
         import socket
 
-        self.MCAST_GRP = '224.1.1.1'
+        room = 1
+        self.MCAST_GRP = '224.' + str(room) + '.0.0'
         self.MCAST_PORT = 5007
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
 
-    def send(self):
-        self.sock.sendto("robot", (self.MCAST_GRP, self.MCAST_PORT))
-
-    def send_init(self):
-        pass
-
-    def send_step(self):
-        pass
+    def send(self, message):
+        self.sock.sendto(message, (self.MCAST_GRP, self.MCAST_PORT))
 
 
 class Cat:
     bot_name = 'DEFAULT_RANDOM_BOT'
 
     def __init__(self):
-        self.p = Point([5, 5])
+        self.p = Point([2, 2])
 
     def one_step(self):
         while True:
             direction = random.choice(SK.STEPS.keys())
-            if direction == SK.TELEPORT:
+            if direction == CommonInterface.TELEPORT:
                 continue
             np = self.p + SK.STEPS[direction]
             if cell_is_correct(np):
@@ -65,18 +57,15 @@ class ServerGame:
     def run(self):
         while True:
             self.run_number += 1
-            self.sender.send(self.generate_init(self.run_number))
-            s
 
+            self.sender.send(CommonInterface.pack_init(self.run_number, self.game_map, self.cat))
+            self.cat
             for t in range(GAME_CONF.STEPS_NUMBER):
                 self.cat.one_step()
                 for repeat in range(GAME_CONF.REPEATS_NUMBER):
-                    for i in range(SK.FIELD_SIZE):
-                        for j in range(SK.FIELD_SIZE):
+                    for i in range(GAME_CONF.FIELD_SIZE):
+                        for j in range(GAME_CONF.FIELD_SIZE):
                             self.sender.send(self.generate_step(t, i, j))
-
-    def generate_init(self):
-        return pickle.dumps([self.game_map, self.cat])
 
     def generate_step(self, t, i, j):
         return self.make_direction(i, j)

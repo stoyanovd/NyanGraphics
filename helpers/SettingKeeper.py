@@ -1,3 +1,6 @@
+from helpers.Point import Point
+
+
 class SK:
     FIELD_SIZE = 4
     FPS = 60.0
@@ -9,7 +12,18 @@ class SK:
     sq = 1200
     MINIMUM_WINDOW_SIZE = (sq, sq)
 
+    LEFT = 'LEFT'
+    RIGHT = 'RIGHT'
+    DOWN = 'DOWN'
+    UP = 'UP'
+    TELEPORT = 'TELEPORT'
 
-class AF:
-    # dict key with (x, y) of cell
-    NYAN_XY = 'nyan_xy'
+    STEPS = {
+        LEFT: Point([-1, 0]),
+        RIGHT: Point([1, 0]),
+        DOWN: Point([0, 1]),
+        UP: Point([0, -1]),
+        TELEPORT: None
+    }
+
+

@@ -15,6 +15,7 @@ How to start
 ------------------------
 
 **Linux!!!**  
+You must have Linux!  
 we have problems with successful connection between Windows and Linux clients in one net
 and there is no time to solve it now
 

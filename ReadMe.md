@@ -49,7 +49,7 @@ Visualizer (Dima's) part
   ```sudo pip install --upgrade pip```  
   ```sudo pip3 install --upgrade pip```  
 
-2.5 We need numpy and Cython:  
+2.5 We need numpy and Cython (make it not through apt-get!):  
   ```pip3 install numpy```
   ```pip3 install Cython```
   

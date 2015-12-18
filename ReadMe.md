@@ -14,23 +14,12 @@ How to start
 
 ------------------------
 
-*Linux!!!*  
+**Linux!!!**  
 we have problems with successful connection between Windows and Linux clients in one net
 and there is no time to solve it now
 
-Visualizer dependencies
-------------------------
 
-1. **python3** (read full instructions below)
-
-2. **Kivy** - framework for GUI
-> http://kivy.org/docs/installation/installation-linux.html
-
-It will be nice to have **PyCharm** - it may save some time for us.
-> https://www.jetbrains.com/pycharm/download/#tabs_1=linux
-> (nearly 130 MB)
-
-Client part
+Client (Kostya's) part
 -----------
 
 1. Clone Kostya's repository:  
@@ -42,22 +31,23 @@ Client part
 
 4. Try run `HunterSillyPlayer`
 
-Visualizer part
+Visualizer (Dima's) part
 -------------------
 0. ```sudo apt-get update```
 
-1. Check python3 version  
-```python3 --version``` must be 3.4
+1. ```python3 --version``` must be 3.4
 
-2. pip3  
-  ```pip3 --version```  
-  If not installed:  
-  ```sudo apt-get install python3-pip```  
-  Current version is 7.1.2 (at moment of writing)  
+2. ```pip3 --version```  must be 7.1.2  
+  To install:  
+  ```sudo apt-get install python3-pip```    
   To update it  
   ```sudo pip3 install --upgrade pip```  
 
-3. Install Kivy through apt-get  
+3. **PyCharm** - sth will be easier with it  
+  Community Edition will be enough (nearly 130 MB)  
+  https://www.jetbrains.com/pycharm/download/#tabs_1=linux  
+
+3. Install **Kivy** through apt-get  
   (From here: http://kivy.org/docs/installation/installation-linux.html)  
   ```sudo add-apt-repository ppa:kivy-team/kivy```  
   ```sudo apt-get update```  

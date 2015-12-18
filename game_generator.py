@@ -37,7 +37,6 @@ class Cat:
         self.p = Point([random.randint(0, GAME_CONF.FIELD_SIZE - 1) for _ in range(2)])
         self.game_map = game_map
         self.send_to_bot(CommonInterface.pack_init(run_number, game_map, self.p))
-        self.send_to_bot(CommonInterface.pack_request_for_step())
 
     def send_to_bot(self, message):
         pass
@@ -61,6 +60,7 @@ class ServerGame:
         self.game_map = GameMap()
         self.sender = ServerSender()
         self.run_number = 0
+        self.cat = None
 
     def run(self):
         while True:

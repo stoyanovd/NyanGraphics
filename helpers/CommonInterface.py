@@ -121,6 +121,8 @@ def pack_bot_step(run_number, time_frame, direction):
 # Bot can send not correct direction - in this case, his step will not be made by client/server.
 # and in next request Bot will learn it.
 
+# Cat/Hunter start positions are set randomly by Server/Client and will be sent with first request.
+
 # request for step
 # common format for
 #   Server to NyanCat message

@@ -43,10 +43,15 @@ Visualizer (Dima's) part
 
 2. ```pip3 --version```  must be 7.1.2  
   To install:  
+  ```sudo apt-get install python-pip```  
   ```sudo apt-get install python3-pip```    
   To update it  
+  ```sudo pip install --upgrade pip```  
   ```sudo pip3 install --upgrade pip```  
 
+2.5 We need numpy:  
+  ```pip3 install numpy```
+  
 3. **PyCharm** - sth will be easier with it  
   Community Edition will be enough (nearly 130 MB)  
   https://www.jetbrains.com/pycharm/download/#tabs_1=linux  

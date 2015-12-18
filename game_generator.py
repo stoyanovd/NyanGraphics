@@ -33,8 +33,10 @@ class ServerSender:
 class Cat:
     bot_name = 'DEFAULT_RANDOM_BOT'
 
-    def __init__(self):
-        self.p = Point([2, 2])
+    def __init__(self, game_map, run_number):
+        self.p = Point([random.randint(0, GAME_CONF.FIELD_SIZE - 1) for _ in range(2)])
+        self.game_map = game_map
+        self.send_to_bot()
 
     def one_step(self):
         while True:
@@ -50,13 +52,13 @@ class Cat:
 class ServerGame:
     def __init__(self):
         self.game_map = GameMap()
-        self.cat = Cat()
         self.sender = ServerSender()
         self.run_number = 0
 
     def run(self):
         while True:
             self.run_number += 1
+            self.cat = Cat(self.game_map, self.run_number)
 
             self.sender.send(CommonInterface.pack_init(self.run_number, self.game_map, self.cat))
             self.cat

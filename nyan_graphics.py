@@ -124,6 +124,7 @@ class NyanGame(BoxLayout):
 
 class NyanApp(App):
     def build(self):
+        Window.size = SK.MINIMUM_WINDOW_SIZE
         game = NyanGame()
         Clock.schedule_interval(game.update, 1.0 / SK.FPS)
         Clock.schedule_interval(game.read_input_data, 1.0 / SK.FPS)

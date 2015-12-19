@@ -1,5 +1,4 @@
 from helpers import CommonInterface
-from helpers.Point import Point
 
 
 class SK:
@@ -12,9 +11,10 @@ class SK:
     MINIMUM_WINDOW_SIZE = (1600, 1200)
 
     STEPS = {
-        CommonInterface.LEFT: Point([-1, 0]),
-        CommonInterface.RIGHT: Point([1, 0]),
-        CommonInterface.DOWN: Point([0, 1]),
-        CommonInterface.UP: Point([0, -1]),
+        CommonInterface.LEFT: [-1, 0],
+        CommonInterface.RIGHT: [1, 0],
+        CommonInterface.DOWN: [0, 1],
+        CommonInterface.UP: [0, -1],
+        CommonInterface.HERE: [0, 0],
         CommonInterface.TELEPORT: None
     }

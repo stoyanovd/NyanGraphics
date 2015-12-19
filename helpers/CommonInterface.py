@@ -19,8 +19,9 @@ class GAME_CONF:
     assert 4 <= FIELD_SIZE <= 20
 
 
-CAT = "cat"  # not in use at the moment
-HUNTER = "hunter"  # not in use at the moment
+WHOIS = "whois"
+CAT = "cat"
+HUNTER = "hunter"
 
 INIT = "init"
 BOT_STEP = "bot_step"
@@ -46,14 +47,15 @@ TIME_FRAME = "time_frame"
 
 DIRECTION = "direction"
 
-LEFT = 'LEFT'
-RIGHT = 'RIGHT'
-DOWN = 'DOWN'
-UP = 'UP'
-TELEPORT = 'TELEPORT'
+LEFT = "LEFT"
+RIGHT = "RIGHT"
+DOWN = "DOWN"
+UP = "UP"
+TELEPORT = "TELEPORT"
+HERE = "HERE"
 
-CUR_X = 'cur_x'
-CUR_Y = 'cur_y'
+CUR_X = "cur_x"
+CUR_Y = "cur_y"
 
 
 # Coordinates go from 0
@@ -61,7 +63,7 @@ CUR_Y = 'cur_y'
 # Zero coordinates are in LEFT-UP corner
 
 def cell_is_correct(p):
-    return (0 <= p.x < GAME_CONF.FIELD_SIZE) and (0 <= p.y < GAME_CONF.FIELD_SIZE)
+    return (0 <= p[0] < GAME_CONF.FIELD_SIZE) and (0 <= p[1] < GAME_CONF.FIELD_SIZE)
 
 
 # LOOK HERE!                               local          UDP multicast           local
@@ -77,7 +79,6 @@ def pack_init(run_number, game_map, cat):
     assert isinstance(cat.bot_name, str)
     # and assert teleports coords are correct
 
-    s = b""
     d = {
         INIT:
             {
@@ -88,20 +89,19 @@ def pack_init(run_number, game_map, cat):
                 GAME_MAP:
                     {
                         TELEPORTS:
-                            {
-                                [
-                                    {
-                                        FROM_X: t.from_p.x,
-                                        FROM_Y: t.from_p.y,
-                                        TO_X: t.to_p.x,
-                                        TO_Y: t.to_p.y
-                                    }
-                                    for t in game_map.teleports]
-                            }
+                            [
+                                {
+                                    FROM_X: t[0],
+                                    FROM_Y: t[1],
+                                    TO_X: t[2],
+                                    TO_Y: t[3]
+                                }
+                                for t in game_map.teleports
+                                ]
                     }
             }
     }
-    json.dump(d, s)
+    s = json.dumps(d)
     return s
 
 
@@ -110,22 +110,23 @@ def pack_init(run_number, game_map, cat):
 # and to
 #   Hunter to Client message
 
-def pack_bot_step(run_number, time_frame, direction):
+def pack_bot_step(run_number, time_frame, whois, direction):
     assert isinstance(run_number, int)
     assert isinstance(time_frame, int)
-    assert direction in [LEFT, RIGHT, DOWN, UP, TELEPORT]
+    assert whois in [CAT, HUNTER]
+    assert direction in [LEFT, RIGHT, DOWN, UP, TELEPORT, HERE]
 
-    s = b""
     d = {
         BOT_STEP:
             {
                 RUN_NUMBER: run_number,
                 TIME_FRAME: time_frame,
+                WHOIS: whois,
                 DIRECTION: direction,
             }
     }
 
-    json.dump(d, s)
+    s = json.dumps(d)
     return s
 
 
@@ -147,17 +148,19 @@ def pack_request_for_step(run_number, time_frame, direction, position):
     assert isinstance(time_frame, int)
     # and assert position is correct
 
-    s = b""
     d = {
         REQUEST_FOR_STEP:
             {
                 RUN_NUMBER: run_number,
                 TIME_FRAME: time_frame,
                 DIRECTION: direction,
-                CUR_X: position.x,
-                CUR_Y: position.y
+                CUR_X: position[0],
+                CUR_Y: position[1]
             }
     }
+    import MyLogging
+    logger = MyLogging.logger
+    logger.info(str(d))
 
-    json.dump(d, s)
+    s = json.dumps(d)
     return s

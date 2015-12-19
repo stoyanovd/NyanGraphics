@@ -12,10 +12,10 @@ class GAME_CONF:
     #  (1-p^r)^k
     # 	~0.99937519331990344353 # probability of having zero lost packets in one game run
 
-    ONE_STEP_TIME_LIMIT_SEC = 5
+    ONE_STEP_TIME_LIMIT_SEC = 1
     REPEATS_NUMBER = 4
 
-    FIELD_SIZE = 16
+    FIELD_SIZE = 4
     assert 4 <= FIELD_SIZE <= 20
 
 
@@ -143,7 +143,7 @@ def pack_bot_step(run_number, time_frame, whois, direction):
 
 # direction is fictive for NyanCatBot
 
-def pack_request_for_step(run_number, time_frame, direction, position):
+def pack_request_for_step(run_number, time_frame, direction_to_cat, position):
     assert isinstance(run_number, int)
     assert isinstance(time_frame, int)
     # and assert position is correct
@@ -153,7 +153,7 @@ def pack_request_for_step(run_number, time_frame, direction, position):
             {
                 RUN_NUMBER: run_number,
                 TIME_FRAME: time_frame,
-                DIRECTION: direction,
+                DIRECTION: direction_to_cat,
                 CUR_X: position[0],
                 CUR_Y: position[1]
             }

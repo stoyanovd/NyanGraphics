@@ -28,7 +28,7 @@ def timeout(dt):
 
             return result
 
-        # new_f.func_name = f.func_name
+        new_f.__name__ = f.__name__
         return new_f
 
     return decorate

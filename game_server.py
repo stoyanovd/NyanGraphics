@@ -1,5 +1,5 @@
 import json
-import logging
+import os
 import random
 
 import socket
@@ -12,8 +12,8 @@ import sched
 import MyLogging
 from helpers import CommonInterface as CM
 from helpers.CommonInterface import GAME_CONF, cell_is_correct
-from helpers.SettingKeeper import SK
-from helpers.TimeoutDecorator import timeout
+from helpers.SettingKeeper import SK, Stater
+from helpers.TimeoutDecorator import timeout, TimedOutExc
 from helpers.TimesConf import TimesConf
 
 TELEPORTS_NUMBER = 3
@@ -102,11 +102,28 @@ class ServerGame:
         self.run_number = 0
         self.cat = None
 
+        self.stater = Stater()
+
+        self.send_update_to_server_vis()
+
+    @timeout(TimesConf.BORDER_DELAY)
+    def send_update_to_server_vis(self):
+        if self.cat:
+            self.stater.cat_p = self.cat.p
+        try:
+            with open(SK.TO_SERVER_VIS_FIFO, 'w') as f:
+                json.dump(self.stater.__dict__, f)
+        except TimedOutExc:
+            return
+
     def send_init(self):
         self.sender.send(CM.pack_init(self.run_number, self.game_map, self.cat), 0, 0)
 
     def send_step(self, msg, i, j):
         self.sender.send(msg, i, j)
+
+    def fill_stater(self):
+        self.stater.cat_p = self.cat.p
 
     def run(self):
         while True:
@@ -114,6 +131,9 @@ class ServerGame:
 
             self.run_number += 1
             self.cat = Cat(self.run_number, self.game_map)
+
+            self.send_update_to_server_vis()
+
             s = sched.scheduler(time.perf_counter, time.sleep)
 
             for repeat in range(GAME_CONF.REPEATS_NUMBER):
@@ -124,6 +144,9 @@ class ServerGame:
 
             for t in range(GAME_CONF.STEPS_NUMBER):
                 logger.info('Cat, start, time_frame=' + str(self.cat.time_frame) + ', p=' + str(self.cat.p))
+
+                self.send_update_to_server_vis()
+
                 s = sched.scheduler(time.perf_counter, time.sleep)
 
                 s.enter(0, 2, self.cat.one_step)
@@ -144,14 +167,14 @@ class ServerGame:
 
     def make_direction(self, i, j):
         dx = abs(i - self.cat.p[0])
-        rx = int(i > self.cat.p[0])
+        rx = int(i < self.cat.p[0])
         dy = abs(j - self.cat.p[1])
-        ry = int(j > self.cat.p[1])
+        ry = int(j < self.cat.p[1])
 
-        if dx == dy == 0:
+        if dx == dy and dx == 0:
             return CM.HERE
 
-        d = dx < dy
+        d = dx > dy
         if dx == dy:
             d = random.randint(0, 1)
 

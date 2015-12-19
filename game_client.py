@@ -1,26 +1,25 @@
 import json
 import logging
+import os
 import random
 import sched
 import socket
 import struct
 import time
 import sys
+
+import MyLogging
 from game_server import GameMap
 from helpers import CommonInterface as CM
 from helpers.CommonInterface import cell_is_correct
-from helpers.SettingKeeper import SK
+from helpers.SettingKeeper import SK, Stater
 from helpers.TimeoutDecorator import timeout, TimedOutExc
 from helpers.TimesConf import TimesConf
 
 BUFFER_SIZE = 10240
 CLIENT_DELAY_BETWEEN_CHECKS = 0.05
 
-logging.basicConfig(level=logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-logger = logging.getLogger("__CLIENT__")
-logger.addHandler(ch)
+logger = MyLogging.logger
 
 
 class ClientReceiver:
@@ -46,7 +45,7 @@ class ClientReceiver:
         while True:
             d = self.sock.recv(BUFFER_SIZE)
             d = bytes.decode(d, encoding='UTF-8')
-            logger.info('recv from Server: ' + d)
+            logger.debug('recv from Server: ' + d)
             d = json.loads(d)
             if CM.INIT in d:
                 return d
@@ -60,7 +59,7 @@ class Hunter:
     def __init__(self):
         self.p = 0, 0
         self.game_run = None
-        self.cat_direction = CM.LEFT # todo fix it, please
+        self.cat_direction = None
         self.time_frame = 0
         self.silly_gen = self.silly_inner_hunter()
 
@@ -82,20 +81,21 @@ class Hunter:
             # ans = input(prompt=sys.stdin) # todo
             ans = next(self.silly_gen)
             ans = json.loads(ans)
-            if CM.BOT_STEP in ans:
-                assert ans[CM.BOT_STEP][CM.RUN_NUMBER] == self.game_run.run_number
-                assert ans[CM.BOT_STEP][CM.TIME_FRAME] == self.time_frame
-                np = (self.p[0] + SK.STEPS[ans[CM.BOT_STEP][CM.DIRECTION]][0],
-                      self.p[1] + SK.STEPS[ans[CM.BOT_STEP][CM.DIRECTION]][1])
-                if cell_is_correct(np):
-                    self.p = np
-                    return True
+            assert CM.BOT_STEP in ans
+            assert ans[CM.BOT_STEP][CM.RUN_NUMBER] == self.game_run.run_number
+            assert ans[CM.BOT_STEP][CM.TIME_FRAME] == self.time_frame
+
+            np = (self.p[0] + SK.STEPS[ans[CM.BOT_STEP][CM.DIRECTION]][0],
+                  self.p[1] + SK.STEPS[ans[CM.BOT_STEP][CM.DIRECTION]][1])
+            if cell_is_correct(np):
+                self.p = np
+                return True
             return False
         except TimedOutExc:
             return False
 
     def process_step(self):
-        if self.game_run is None:
+        if self.game_run is None or self.cat_direction is None:
             return
         self.send_to_bot(
             CM.pack_request_for_step(self.game_run.run_number, self.time_frame, self.cat_direction, self.p))
@@ -112,18 +112,31 @@ class ClientGame:
         d = d[CM.INIT]
         self.hunter.start_new_game_run(d)
 
+        self.stater = Stater()
+        self.send_update_to_client_vis()
+
+    @timeout(TimesConf.BORDER_DELAY)
+    def send_update_to_client_vis(self):
+        if self.hunter and self.hunter.cat_direction:
+            self.stater.hunter_p = self.hunter.p
+            self.stater.cat_direction = self.hunter.cat_direction
+        try:
+            with open(SK.TO_CLIENT_VIS_FIFO, 'w') as f:
+                json.dump(self.stater.__dict__, f)
+        except TimedOutExc:
+            return
+
     @timeout(TimesConf.TOTAL - 2 * TimesConf.BORDER_DELAY)
     def receivings_msgs(self):
         try:
             while True:
                 if self.hunter.game_run is None:
-                    self.receiver.bind_cell(0, 0)
                     d = self.receiver.recv(only_init=True)
                 else:
-                    self.receiver.bind_cell(self.hunter.p[0], self.hunter.p[1])
                     d = self.receiver.recv(only_init=False)
 
                 if CM.BOT_STEP in d:
+                    logger.info('Hunter fetch info about cat!')
                     assert CM.CAT == d[CM.BOT_STEP][CM.WHOIS]
                     if d[CM.BOT_STEP][CM.RUN_NUMBER] != self.hunter.game_run.run_number:
                         self.hunter.game_run = None  # ATTENTION!
@@ -146,6 +159,16 @@ class ClientGame:
     def run(self):
         while True:
             logger.info('Hunter, start, time_frame=' + str(self.hunter.time_frame) + ', p=' + str(self.hunter.p))
+
+            self.stater.hunter_p = self.hunter.p
+            self.stater.cat_direction = self.hunter.cat_direction
+            self.send_update_to_client_vis()
+
+            if self.hunter.game_run is None:
+                self.receiver.bind_cell(0, 0)
+            else:
+                self.receiver.bind_cell(self.hunter.p[0], self.hunter.p[1])
+
             s = sched.scheduler(time.perf_counter, time.sleep)
             s.enter(0, 1, self.receivings_msgs)
             s.enter(TimesConf.TOTAL - 2 * TimesConf.BORDER_DELAY, 1, self.hunter.process_step)
@@ -156,7 +179,7 @@ class ClientGame:
 class GameRun:
     def __init__(self, d_init):
         self.run_number = d_init[CM.RUN_NUMBER]
-        self.cot_bot_name = d_init[CM.CAT_BOT_NAME]
+        self.cat_bot_name = d_init[CM.CAT_BOT_NAME]
         self.steps_number = d_init[CM.STEPS_NUMBER]
         self.field_size = d_init[CM.FIELD_SIZE]
 

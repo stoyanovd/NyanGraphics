@@ -1,3 +1,4 @@
+import json
 import select
 import sys
 from kivy.app import App
@@ -8,19 +9,14 @@ from kivy.graphics.svg import Svg
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.image import Image
 from kivy.uix.label import Label
-from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.scatter import Scatter
-from kivy.uix.widget import Widget
-from helpers.CommonInterface import GAME_CONF
-from helpers.SettingKeeper import SK
 from helpers import CommonInterface as CM
-
-
-class Stater:
-    cat_p = None
-    hunter_p = None
-    cat_direction = None
+from helpers.CommonInterface import GAME_CONF
+from helpers.SettingKeeper import SK, Stater
+from helpers.TimeoutDecorator import timeout, TimedOutExc
+from helpers.TimesConf import TimesConf
 
 
 class SvgWidget(Scatter):
@@ -44,16 +40,34 @@ class NyanCell(BoxLayout):
 
         self.add_widget(self.status_label)
 
-        self.space = BoxLayout(size_hint_y=8, background_color=(0.5, 0.9, 0.1, 1))
+        self.space = BoxLayout(size_hint_y=8, background_normal='', background_color=(0.5, 0.9, 0.1, 1))
         self.add_widget(self.space)
 
     def check_updates(self, stater):
+        # with self.canvas.before:
+        #     Color(0, 0, 0)
+        #     br = 1
+        #     self.rect = Rectangle(x=self.x + br, y=self.y + br, width=self.width - 2 * br,
+        #                           height=self.height - 2 * br)
+
         self.space.clear_widgets()
-        if stater.hunter_p is not None and (self.cell_x, self.cell_y) == stater.hunter_p:
-            self.space.add_widget(SvgWidget('helpers/images/arrow-up.svg'))
-        if stater.cat_p is not None and (self.cell_x, self.cell_y) == stater.cat_p:
-            self.space.add_widget(Label(background_normal='helpers/images/min_cat.png',
-                                        size=(20, 20)))
+        if stater.hunter_p is not None and self.cell_x == stater.hunter_p[0] and self.cell_y == stater.hunter_p[1]:
+            s1 = Scatter(pos_hint={'center_x': self.space.center_x,
+                                   'center_y': self.space.center_y})
+            s1.add_widget(Image(source='helpers/images/min_ar.png',
+                                pos_hint={'center_x': self.space.center_x,
+                                          'center_y': self.space.center_y}))
+            self.space.add_widget(s1)
+            self.space.add_widget(Label(text=stater.cat_direction))
+
+        if stater.cat_p is not None and self.cell_x == stater.cat_p[0] and self.cell_y == stater.cat_p[1]:
+            s2 = Scatter(pos_hint={'center_x': self.space.center_x,
+                                   'center_y': self.space.center_y})
+            s2.add_widget(Image(source='helpers/images/min_min_cat.png',
+                                pos_hint={'center_x': self.space.center_x,
+                                          'center_y': self.space.center_y}))
+            self.space.add_widget(s2)
+            self.space.add_widget(Label(text=CM.CAT))
 
 
 class NyanGame(BoxLayout):
@@ -62,6 +76,7 @@ class NyanGame(BoxLayout):
     input_query = [0]
     cur_direction = None
     stater = None
+    pipe_path = ""
 
     def get_status_string(self):
         return ['Time', '_____', 'frame №', '{0:7d}'.format(self.status_time),
@@ -80,6 +95,7 @@ class NyanGame(BoxLayout):
             # to change the keyboard layout.
             pass
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
+        self.pipe_path = kwargs['pipe_path']
 
     def update_status(self):
         res = self.get_status_string()
@@ -139,14 +155,20 @@ class NyanGame(BoxLayout):
             for j in range(GAME_CONF.FIELD_SIZE):
                 self.fields[i][j].check_updates(self.stater)
 
+    @timeout(TimesConf.BORDER_DELAY)
     def read_input_data(self, t):
-        if not select.select([sys.stdin, ], [], [], 0.0)[0]:
-            return
+        try:
+            with open(self.pipe_path, 'r') as f:
+                d = json.load(f)
+            if 'cat_direction' in d:
+                self.stater.cat_direction = d['cat_direction']
+            if 'cat_p' in d:
+                self.stater.cat_p = d['cat_p']
+            if 'hunter_p' in d:
+                self.stater.hunter_p = d['hunter_p']
 
-        s = input()
-        # print(len(s))
-        # i = (input())
-        # self.input_query[0] = i
+        except TimedOutExc:
+            return
 
     def send_direction(self):
         print(self.cur_direction)
@@ -154,24 +176,32 @@ class NyanGame(BoxLayout):
 
 class NyanApp(App):
     stater = None
+    pipe_path = ""
 
     def build(self):
         Window.size = SK.MINIMUM_WINDOW_SIZE
-        game = NyanGame(stater=self.stater)
+        game = NyanGame(stater=self.stater, pipe_path=self.pipe_path)
         Clock.schedule_interval(game.update, 1.0 / SK.FPS)
         Clock.schedule_interval(game.read_input_data, 1.0 / SK.FPS)
         return game
 
 
-def graphics_main():
+def createNyanApp(st, pipe_path):
+    app = NyanApp()
+    app.stater = st
+    print(pipe_path)
+    assert pipe_path in [SK.TO_CLIENT_VIS_FIFO, SK.TO_SERVER_VIS_FIFO]
+    app.pipe_path = pipe_path
+    app.run()
+
+
+def graphics_main(pipe_path):
     st = Stater()
     st.cat_direction = CM.LEFT
     st.cat_p = 0, 0
     st.hunter_p = 1, 1
-    app = NyanApp()
-    app.stater = st
-    app.run()
+    createNyanApp(st, pipe_path)
 
 
 if __name__ == '__main__':
-    graphics_main()
+    graphics_main(sys.argv[1])

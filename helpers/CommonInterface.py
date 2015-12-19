@@ -12,6 +12,7 @@ class GAME_CONF:
     #  (1-p^r)^k
     # 	~0.99937519331990344353 # probability of having zero lost packets in one game run
 
+    ONE_STEP_TIME_LIMIT_SEC = 5
     REPEATS_NUMBER = 4
 
     FIELD_SIZE = 16
@@ -22,6 +23,9 @@ CAT = "cat"  # not in use at the moment
 HUNTER = "hunter"  # not in use at the moment
 
 INIT = "init"
+BOT_STEP = "bot_step"
+REQUEST_FOR_STEP = "request_for_step"
+
 GAME_MAP = "game_map"
 
 RUN_NUMBER = "run_number"
@@ -55,6 +59,10 @@ CUR_Y = 'cur_y'
 # Coordinates go from 0
 # e.g from (0, 0) to (15, 15)
 # Zero coordinates are in LEFT-UP corner
+
+def cell_is_correct(p):
+    return (0 <= p.x < GAME_CONF.FIELD_SIZE) and (0 <= p.y < GAME_CONF.FIELD_SIZE)
+
 
 # LOOK HERE!                               local          UDP multicast           local
 # We have such connections:   NyanCatBot <-------> Server --------------> Client <-------> HunterBot
@@ -109,9 +117,12 @@ def pack_bot_step(run_number, time_frame, direction):
 
     s = b""
     d = {
-        RUN_NUMBER: run_number,
-        TIME_FRAME: time_frame,
-        DIRECTION: direction,
+        BOT_STEP:
+            {
+                RUN_NUMBER: run_number,
+                TIME_FRAME: time_frame,
+                DIRECTION: direction,
+            }
     }
 
     json.dump(d, s)
@@ -138,11 +149,14 @@ def pack_request_for_step(run_number, time_frame, direction, position):
 
     s = b""
     d = {
-        RUN_NUMBER: run_number,
-        TIME_FRAME: time_frame,
-        DIRECTION: direction,
-        CUR_X: position.x,
-        CUR_Y: position.y
+        REQUEST_FOR_STEP:
+            {
+                RUN_NUMBER: run_number,
+                TIME_FRAME: time_frame,
+                DIRECTION: direction,
+                CUR_X: position.x,
+                CUR_Y: position.y
+            }
     }
 
     json.dump(d, s)

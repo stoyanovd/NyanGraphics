@@ -1,33 +1,44 @@
-import pickle
 import random
+import socket
+import time
+
 from helpers import CommonInterface
-from helpers.CommonInterface import GAME_CONF
+from helpers.CommonInterface import GAME_CONF, cell_is_correct
 from helpers.Point import Point
 from helpers.SettingKeeper import SK
 
+TELEPORTS_NUMBER = 3
 
-def cell_is_correct(p):
-    return (0 <= p.x < GAME_CONF.FIELD_SIZE) and (0 <= p.y < GAME_CONF.FIELD_SIZE)
+
+class Teleport:
+    from_p = Point()
+    to_p = Point()
 
 
 class GameMap:
-    def __init__(self, teleports=None):
-        self.teleports = teleports
+    def __init__(self):
+        self.teleports = []
+        a = [(i, j) for i in range(GAME_CONF.FIELD_SIZE) for j in range(GAME_CONF.FIELD_SIZE)]
+        for i in range(TELEPORTS_NUMBER):
+            t = Teleport()
+            t.from_p = Point(a[2 * i])
+            t.to_p = Point(a[2 * i + 1])
+            self.teleports.append(t)
 
 
 class ServerSender:
-    def __init__(self):
-        import socket
-
-        room = 1
-        self.MCAST_GRP = '224.' + str(room) + '.0.0'
+    def __init__(self, room):
+        self.room = room
         self.MCAST_PORT = 5007
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
 
-    def send(self, message):
-        self.sock.sendto(message, (self.MCAST_GRP, self.MCAST_PORT))
+    def MCAST_GRP(self, i, j):
+        return '.'.join([224, self.room, i, j])
+
+    def send(self, message, i, j):
+        self.sock.sendto(message, (self.MCAST_GRP(i, j), self.MCAST_PORT))
 
 
 class Cat:
@@ -44,6 +55,7 @@ class Cat:
     def receive_from_bot(self):
         pass
 
+    # it must be limited by time!!!
     def one_step(self):
         while True:
             direction = random.choice(SK.STEPS.keys())
@@ -58,7 +70,7 @@ class Cat:
 class ServerGame:
     def __init__(self):
         self.game_map = GameMap()
-        self.sender = ServerSender()
+        self.sender = ServerSender(1)
         self.run_number = 0
         self.cat = None
 
@@ -66,14 +78,25 @@ class ServerGame:
         while True:
             self.run_number += 1
             self.cat = Cat(self.run_number, self.game_map)
-            self.sender.send(CommonInterface.pack_init(self.run_number, self.game_map, self.cat))
+
+            # ---- Send init of game
+            for repeat in range(GAME_CONF.REPEATS_NUMBER):
+                time_stamp = time.perf_counter()
+                self.sender.send(CommonInterface.pack_init(self.run_number, self.game_map, self.cat), 0, 0)
+                cur_time = time.perf_counter()
+                time.sleep(GAME_CONF.ONE_STEP_TIME_LIMIT_SEC - (cur_time - time_stamp))
+            # --------------------
 
             for t in range(GAME_CONF.STEPS_NUMBER):
+                time_stamp = time.perf_counter()
                 self.cat.one_step()
+
                 for repeat in range(GAME_CONF.REPEATS_NUMBER):
                     for i in range(GAME_CONF.FIELD_SIZE):
                         for j in range(GAME_CONF.FIELD_SIZE):
-                            self.sender.send(self.generate_step(t, i, j))
+                            self.sender.send(self.generate_step(t, i, j), i, j)
+                cur_time = time.perf_counter()
+                time.sleep(GAME_CONF.ONE_STEP_TIME_LIMIT_SEC - (cur_time - time_stamp))
 
     def generate_step(self, t, i, j):
         return self.make_direction(i, j)
@@ -89,25 +112,6 @@ class ServerGame:
             d = random.randint(0, 1)
 
         if d:
-            return [SK.LEFT, SK.RIGHT][rx]
+            return [CommonInterface.LEFT, CommonInterface.RIGHT][rx]
         else:
-            return [SK.UP, SK.DOWN][ry]
-
-# def recv(self):
-#     import socket
-#     import struct
-#
-#     MCAST_GRP = '224.1.1.1'
-#     MCAST_PORT = 5007
-#
-#     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-#     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-#     sock.bind(('', MCAST_PORT))  # use MCAST_GRP instead of '' to listen only
-#     # to MCAST_GRP, not all groups on MCAST_PORT
-#     mreq = struct.pack("4sl", socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)
-#
-#     sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-#
-#     while True:
-#         print
-#         sock.recv(10240)
+            return [CommonInterface.UP, CommonInterface.DOWN][ry]

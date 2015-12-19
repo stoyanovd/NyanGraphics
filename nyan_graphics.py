@@ -1,4 +1,5 @@
 import json
+import os
 import select
 import sys
 from kivy.app import App
@@ -158,6 +159,9 @@ class NyanGame(BoxLayout):
     @timeout(TimesConf.BORDER_DELAY)
     def read_input_data(self, t):
         try:
+            if not os.path.exists(self.pipe_path):
+                open(self.pipe_path, 'w').close()
+
             with open(self.pipe_path, 'r') as f:
                 d = json.load(f)
             if 'cat_direction' in d:

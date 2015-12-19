@@ -4,22 +4,31 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.graphics import Color, Rectangle
+from kivy.graphics.svg import Svg
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.scatter import Scatter
 from kivy.uix.widget import Widget
 from helpers.CommonInterface import GAME_CONF
 from helpers.SettingKeeper import SK
+from helpers import CommonInterface as CM
 
 
-class ColorFiller(Label):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        with self.canvas.before:
-            Color(1, 1, 0)
-            self.rect = Rectangle(size=self.size, pos=self.pos)
+class Stater:
+    cat_p = None
+    hunter_p = None
+    cat_direction = None
+
+
+class SvgWidget(Scatter):
+    def __init__(self, filename, **kwargs):
+        super(SvgWidget, self).__init__(**kwargs)
+        with self.canvas:
+            svg = Svg(filename)
+        self.size = 15, 15
 
 
 class NyanCell(BoxLayout):
@@ -27,13 +36,24 @@ class NyanCell(BoxLayout):
         super().__init__()
         # self.width, self.height = SK.CELL_WIDTH, SK.CELL_HEIGHT
         self.cell_x, self.cell_y = nyan_pos
-        self.orientation = 'vertical'
-        self.status_label = Label(text='cell x:' + str(self.cell_x) + ' y:' + str(self.cell_y), size_hint_y=1)
-        self.add_widget(self.status_label)
-        # self.add_widget(ColorFiller())
 
-        self.space = Button(size_hint_y=10)
+        self.orientation = 'vertical'
+        self.status_label = Label(
+            text='[size=12]' + 'cell x:' + str(self.cell_x) + ' y:' + str(self.cell_y) + '[/size]',
+            markup=True, size_hint_y=1)
+
+        self.add_widget(self.status_label)
+
+        self.space = BoxLayout(size_hint_y=8, background_color=(0.5, 0.9, 0.1, 1))
         self.add_widget(self.space)
+
+    def check_updates(self, stater):
+        self.space.clear_widgets()
+        if stater.hunter_p is not None and (self.cell_x, self.cell_y) == stater.hunter_p:
+            self.space.add_widget(SvgWidget('helpers/images/arrow-up.svg'))
+        if stater.cat_p is not None and (self.cell_x, self.cell_y) == stater.cat_p:
+            self.space.add_widget(Label(background_normal='helpers/images/min_cat.png',
+                                        size=(20, 20)))
 
 
 class NyanGame(BoxLayout):
@@ -41,6 +61,7 @@ class NyanGame(BoxLayout):
     status_time = 1
     input_query = [0]
     cur_direction = None
+    stater = None
 
     def get_status_string(self):
         return ['Time', '_____', 'frame №', '{0:7d}'.format(self.status_time),
@@ -49,6 +70,7 @@ class NyanGame(BoxLayout):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.stater = kwargs['stater']
         self.status_layout = BoxLayout(orientation='vertical', size_hint_x=2)
         self.update_status()
         self.serve_fields()
@@ -113,6 +135,9 @@ class NyanGame(BoxLayout):
     def update(self, t):
         self.status_time += 1
         self.update_status()
+        for i in range(GAME_CONF.FIELD_SIZE):
+            for j in range(GAME_CONF.FIELD_SIZE):
+                self.fields[i][j].check_updates(self.stater)
 
     def read_input_data(self, t):
         if not select.select([sys.stdin, ], [], [], 0.0)[0]:
@@ -128,13 +153,25 @@ class NyanGame(BoxLayout):
 
 
 class NyanApp(App):
+    stater = None
+
     def build(self):
         Window.size = SK.MINIMUM_WINDOW_SIZE
-        game = NyanGame()
+        game = NyanGame(stater=self.stater)
         Clock.schedule_interval(game.update, 1.0 / SK.FPS)
         Clock.schedule_interval(game.read_input_data, 1.0 / SK.FPS)
         return game
 
 
+def graphics_main():
+    st = Stater()
+    st.cat_direction = CM.LEFT
+    st.cat_p = 0, 0
+    st.hunter_p = 1, 1
+    app = NyanApp()
+    app.stater = st
+    app.run()
+
+
 if __name__ == '__main__':
-    NyanApp().run()
+    graphics_main()

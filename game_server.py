@@ -103,6 +103,8 @@ class ServerGame:
         self.cat = None
 
         self.stater = Stater()
+        if not os.path.exists(SK.TO_SERVER_VIS_FIFO):
+            open(SK.TO_SERVER_VIS_FIFO, 'w').close()
 
         self.send_update_to_server_vis()
 

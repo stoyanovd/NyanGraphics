@@ -113,6 +113,9 @@ class ClientGame:
         self.hunter.start_new_game_run(d)
 
         self.stater = Stater()
+        if not os.path.exists(SK.TO_CLIENT_VIS_FIFO):
+            open(SK.TO_CLIENT_VIS_FIFO, 'w').close()
+
         self.send_update_to_client_vis()
 
     @timeout(TimesConf.BORDER_DELAY)

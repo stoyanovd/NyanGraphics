@@ -7,7 +7,6 @@ import socket
 import struct
 import time
 import sys
-
 import MyLogging
 from game_server import GameMap
 from helpers import CommonInterface as CM
@@ -19,7 +18,7 @@ from helpers.TimesConf import TimesConf
 BUFFER_SIZE = 10240
 CLIENT_DELAY_BETWEEN_CHECKS = 0.05
 
-logger = MyLogging.logger
+logger = MyLogging.make_logger()
 
 
 class ClientReceiver:
@@ -46,7 +45,11 @@ class ClientReceiver:
             d = self.sock.recv(BUFFER_SIZE)
             d = bytes.decode(d, encoding='UTF-8')
             logger.debug('recv from Server: ' + d)
+            if d is None:
+                continue
             d = json.loads(d)
+            if not isinstance(d, dict):
+                continue
             if CM.INIT in d:
                 return d
             if only_init:
@@ -61,25 +64,26 @@ class Hunter:
         self.game_run = None
         self.cat_direction = None
         self.time_frame = 0
-        self.silly_gen = self.silly_inner_hunter()
+        self.silly_gen = self.silly_inner_hunter
 
     def start_new_game_run(self, d_init):
         self.game_run = GameRun(d_init)
         self.p = [random.randint(0, self.game_run.field_size - 1) for _ in range(2)]
 
     def silly_inner_hunter(self):
-        while True:
-            yield CM.pack_bot_step(self.game_run.run_number, self.time_frame, CM.HUNTER, self.cat_direction)
+        return CM.pack_bot_step(self.game_run.run_number, self.time_frame, CM.HUNTER, self.cat_direction)
 
     def send_to_bot(self, message):
-        print(message, file=sys.stdout)
+        logger.debug(message)
+        # print(message, file=sys.stdout)
         # our silly bot straightly get it all
+        pass
 
     @timeout(TimesConf.BORDER_DELAY)
     def receive_from_bot(self):
         try:
             # ans = input(prompt=sys.stdin) # todo
-            ans = next(self.silly_gen)
+            ans = self.silly_gen()
             ans = json.loads(ans)
             assert CM.BOT_STEP in ans
             assert ans[CM.BOT_STEP][CM.RUN_NUMBER] == self.game_run.run_number
@@ -104,7 +108,7 @@ class Hunter:
 
 class ClientGame:
     def __init__(self):
-        self.receiver = ClientReceiver(1)
+        self.receiver = ClientReceiver(SK.ROOM_NUMBER)
         self.hunter = Hunter()
 
         self.receiver.bind_cell(0, 0)
@@ -113,14 +117,15 @@ class ClientGame:
         self.hunter.start_new_game_run(d)
 
         self.stater = Stater()
+
         if not os.path.exists(SK.TO_CLIENT_VIS_FIFO):
-            open(SK.TO_CLIENT_VIS_FIFO, 'w').close()
+            open(SK.TO_CLIENT_VIS_FIFO, 'w+').close()
 
         self.send_update_to_client_vis()
 
     @timeout(TimesConf.BORDER_DELAY)
     def send_update_to_client_vis(self):
-        if self.hunter and self.hunter.cat_direction:
+        if self.hunter is not None and self.hunter.cat_direction is not None:
             self.stater.hunter_p = self.hunter.p
             self.stater.cat_direction = self.hunter.cat_direction
         try:
@@ -139,17 +144,19 @@ class ClientGame:
                     d = self.receiver.recv(only_init=False)
 
                 if CM.BOT_STEP in d:
-                    logger.info('Hunter fetch info about cat!')
+                    logger.debug('Hunter fetch info about cat!')
                     assert CM.CAT == d[CM.BOT_STEP][CM.WHOIS]
                     if d[CM.BOT_STEP][CM.RUN_NUMBER] != self.hunter.game_run.run_number:
-                        self.hunter.game_run = None  # ATTENTION!
+                        logger.debug('qqqqq  Old packet')
+                        continue
                     if d[CM.BOT_STEP][CM.TIME_FRAME] - self.hunter.time_frame > 1:
-                        self.hunter.game_run = None  # ATTENTION!
+                        logger.debug('qqqqq  Old packet')
+                        continue
                     self.hunter.cat_direction = d[CM.BOT_STEP][CM.DIRECTION]
                     if self.hunter.cat_direction == CM.HERE:
-                        logger.info("----- HOORAY!!!!")
-                        logger.info("-----             We catch him!")
-                        logger.info("----- HOORAY!!!!")
+                        logger.debug("--------------------------------")
+                        logger.info("----- HOORAY!!!!   We catch him!")
+                        logger.debug("--------------------------------")
                     self.hunter.time_frame = d[CM.BOT_STEP][CM.TIME_FRAME]
 
                 elif CM.INIT in d:
@@ -161,10 +168,9 @@ class ClientGame:
 
     def run(self):
         while True:
-            logger.info('Hunter, start, time_frame=' + str(self.hunter.time_frame) + ', p=' + str(self.hunter.p))
+            print('Hunter, start, time_frame=' + str(self.hunter.time_frame) +
+                  ', p=' + str(self.hunter.p) + ', cat_direction=' + str(self.hunter.cat_direction))
 
-            self.stater.hunter_p = self.hunter.p
-            self.stater.cat_direction = self.hunter.cat_direction
             self.send_update_to_client_vis()
 
             if self.hunter.game_run is None:

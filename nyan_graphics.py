@@ -160,10 +160,15 @@ class NyanGame(BoxLayout):
     def read_input_data(self, t):
         try:
             if not os.path.exists(self.pipe_path):
-                open(self.pipe_path, 'w').close()
+                open(self.pipe_path, 'w+').close()
 
             with open(self.pipe_path, 'r') as f:
-                d = json.load(f)
+                try:
+                    d = json.load(f)
+                except:
+                    return
+            if d is None or not isinstance(d, dict):
+                return
             if 'cat_direction' in d:
                 self.stater.cat_direction = d['cat_direction']
             if 'cat_p' in d:
@@ -193,13 +198,26 @@ class NyanApp(App):
 def createNyanApp(st, pipe_path):
     app = NyanApp()
     app.stater = st
-    print(pipe_path)
+    print('pipe file to connect:', pipe_path)
     assert pipe_path in [SK.TO_CLIENT_VIS_FIFO, SK.TO_SERVER_VIS_FIFO]
     app.pipe_path = pipe_path
     app.run()
 
 
-def graphics_main(pipe_path):
+def graphics_main(pipe_name):
+    pipe_path = None
+    try:
+        if 'c' == pipe_name[0]:
+            pipe_path = SK.TO_CLIENT_VIS_FIFO
+        elif 's' == pipe_name[0]:
+            pipe_path = SK.TO_SERVER_VIS_FIFO
+        else:
+            raise AssertionError
+    except:
+        print('Usage:')
+        print('for server: python3 nyan_graphics.py s')
+        print('for client: python3 nyan_graphics.py c')
+        exit(1)
     st = Stater()
     st.cat_direction = CM.LEFT
     st.cat_p = 0, 0

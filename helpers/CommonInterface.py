@@ -158,9 +158,6 @@ def pack_request_for_step(run_number, time_frame, direction_to_cat, position):
                 CUR_Y: position[1]
             }
     }
-    import MyLogging
-    logger = MyLogging.logger
-    logger.info(str(d))
 
     s = json.dumps(d)
     return s

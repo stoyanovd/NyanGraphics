@@ -1,14 +1,10 @@
 import json
 import os
 import random
-
 import socket
 import time
-
 import sys
-
 import sched
-
 import MyLogging
 from helpers import CommonInterface as CM
 from helpers.CommonInterface import GAME_CONF, cell_is_correct
@@ -18,7 +14,7 @@ from helpers.TimesConf import TimesConf
 
 TELEPORTS_NUMBER = 3
 
-logger = MyLogging.logger
+logger = MyLogging.make_logger()
 
 
 class GameMap:
@@ -69,8 +65,10 @@ class Cat:
                 yield CM.pack_bot_step(self.run_number, self.time_frame, CM.CAT, direction)
 
     def send_to_bot(self, message):
-        print(message, file=sys.stdout)
+        logger.debug(message)
+        # print(message, file=sys.stdout)
         # we say it straight to our silly generator
+        pass
 
     @timeout(TimesConf.BORDER_DELAY)
     def receive_from_bot(self):
@@ -98,13 +96,13 @@ class Cat:
 class ServerGame:
     def __init__(self):
         self.game_map = GameMap()
-        self.sender = ServerSender(1)
+        self.sender = ServerSender(SK.ROOM_NUMBER)
         self.run_number = 0
         self.cat = None
 
         self.stater = Stater()
         if not os.path.exists(SK.TO_SERVER_VIS_FIFO):
-            open(SK.TO_SERVER_VIS_FIFO, 'w').close()
+            open(SK.TO_SERVER_VIS_FIFO, 'w+').close()
 
         self.send_update_to_server_vis()
 
@@ -129,7 +127,7 @@ class ServerGame:
 
     def run(self):
         while True:
-            logger.info('Game Map, start, run_number=' + str(self.run_number))
+            print('Game Map, start, run_number=' + str(self.run_number))
 
             self.run_number += 1
             self.cat = Cat(self.run_number, self.game_map)

@@ -1,3 +1,5 @@
+import os
+
 from helpers import CommonInterface
 
 
@@ -19,11 +21,13 @@ class SK:
         CommonInterface.TELEPORT: None
     }
 
-    TO_CLIENT_VIS_FIFO = 'tc'
-    TO_SERVER_VIS_FIFO = 'ts'
+    ROOM_NUMBER = 1
+    TO_CLIENT_VIS_FIFO = os.path.join('.', 'nyan_tc')
+    TO_SERVER_VIS_FIFO = os.path.join('.', 'nyan_ts')
 
 
 class Stater:
-    cat_p = None
-    hunter_p = None
-    cat_direction = None
+    def __init__(self):
+        self.cat_p = None
+        self.hunter_p = None
+        self.cat_direction = None

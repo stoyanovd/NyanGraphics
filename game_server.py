@@ -127,9 +127,9 @@ class ServerGame:
 
     def run(self):
         while True:
+            self.run_number += 1
             print('Game Map, start, run_number=' + str(self.run_number))
 
-            self.run_number += 1
             self.cat = Cat(self.run_number, self.game_map)
 
             self.send_update_to_server_vis()
@@ -143,7 +143,8 @@ class ServerGame:
             s.run()
 
             for t in range(GAME_CONF.STEPS_NUMBER):
-                logger.info('Cat, start, time_frame=' + str(self.cat.time_frame) + ', p=' + str(self.cat.p))
+                logger.info('Cat, run_number=' + str(self.run_number) + ', time_frame=' + str(
+                    self.cat.time_frame) + ', p=' + str(self.cat.p))
 
                 self.send_update_to_server_vis()
 

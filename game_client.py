@@ -68,6 +68,7 @@ class Hunter:
 
     def start_new_game_run(self, d_init):
         self.game_run = GameRun(d_init)
+        self.time_frame = 0
         self.p = [random.randint(0, self.game_run.field_size - 1) for _ in range(2)]
 
     def silly_inner_hunter(self):
@@ -146,10 +147,13 @@ class ClientGame:
                 if CM.BOT_STEP in d:
                     logger.debug('Hunter fetch info about cat!')
                     assert CM.CAT == d[CM.BOT_STEP][CM.WHOIS]
+                    # if d[CM.BOT_STEP][CM.RUN_NUMBER] != self.hunter.game_run.run_number:
+                    #     logger.debug('qqqqq  Old packet')
+                    #     continue
                     if d[CM.BOT_STEP][CM.RUN_NUMBER] != self.hunter.game_run.run_number:
-                        logger.debug('qqqqq  Old packet')
-                        continue
-                    if d[CM.BOT_STEP][CM.TIME_FRAME] - self.hunter.time_frame > 1:
+                        self.hunter.game_run.run_number = d[CM.BOT_STEP][CM.RUN_NUMBER]
+
+                    if d[CM.BOT_STEP][CM.TIME_FRAME] < self.hunter.time_frame:
                         logger.debug('qqqqq  Old packet')
                         continue
                     self.hunter.cat_direction = d[CM.BOT_STEP][CM.DIRECTION]
@@ -168,7 +172,8 @@ class ClientGame:
 
     def run(self):
         while True:
-            print('Hunter, start, time_frame=' + str(self.hunter.time_frame) +
+            print('Hunter, run_number=' + str(self.hunter.game_run.run_number) + ', time_frame=' + str(
+                self.hunter.time_frame) +
                   ', p=' + str(self.hunter.p) + ', cat_direction=' + str(self.hunter.cat_direction))
 
             self.send_update_to_client_vis()

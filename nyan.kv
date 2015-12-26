@@ -1,0 +1,30 @@
+#:kivy 1.0.9
+
+<NyanGame>:
+    canvas.before:
+        Color:
+            rgba: 1, 0, 1, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<NyanCell>:
+    canvas.after:
+        Color:
+            rgb: 1,1,0
+        Line:
+            rectangle: self.x+1,self.y+1,self.width-1,self.height-1
+            width: 5
+            cap: "square"
+            joint: "bevel"
+
+
+<NyanArrow>:
+    canvas.before:
+        PushMatrix
+        Rotate:
+            angle: self.angle
+            axis: (0, 0, 1)
+            origin: self.center
+    canvas.after:
+        PopMatrix

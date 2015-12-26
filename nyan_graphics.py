@@ -7,6 +7,7 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.graphics import Color, Rectangle
 from kivy.graphics.svg import Svg
+from kivy.properties import NumericProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
@@ -28,10 +29,19 @@ class SvgWidget(Scatter):
         self.size = 15, 15
 
 
+class NyanArrow(Image):
+    angle = NumericProperty(0)
+
+    def __init__(self, nyan_angle, **kwargs):
+        super().__init__(**kwargs)
+        self.angle = int(nyan_angle)
+
+
 class NyanCell(BoxLayout):
     def __init__(self, nyan_pos):
         super().__init__()
         # self.width, self.height = SK.CELL_WIDTH, SK.CELL_HEIGHT
+        self.angle = 0
         self.cell_x, self.cell_y = nyan_pos
 
         self.orientation = 'vertical'
@@ -39,7 +49,7 @@ class NyanCell(BoxLayout):
             text='[size=12]' + 'cell x:' + str(self.cell_x) + ' y:' + str(self.cell_y) + '[/size]',
             markup=True, size_hint_y=1)
 
-        self.add_widget(self.status_label)
+        # self.add_widget(self.status_label)
 
         self.space = BoxLayout(size_hint_y=8, background_normal='', background_color=(0.5, 0.9, 0.1, 1))
         self.add_widget(self.space)
@@ -53,22 +63,14 @@ class NyanCell(BoxLayout):
 
         self.space.clear_widgets()
         if stater.hunter_p is not None and self.cell_x == stater.hunter_p[0] and self.cell_y == stater.hunter_p[1]:
-            s1 = Scatter(pos_hint={'center_x': self.space.center_x,
-                                   'center_y': self.space.center_y})
-            s1.add_widget(Image(source='helpers/images/min_ar.png',
-                                pos_hint={'center_x': self.space.center_x,
-                                          'center_y': self.space.center_y}))
-            self.space.add_widget(s1)
+            if stater.cat_direction in [CM.RIGHT, CM.UP, CM.LEFT, CM.DOWN]:
+                angle = 90 * [CM.RIGHT, CM.UP, CM.LEFT, CM.DOWN].index(stater.cat_direction)
+                self.space.add_widget(NyanArrow(nyan_angle=angle, source='helpers/images/arrow.png'))
             self.space.add_widget(Label(text=stater.cat_direction))
 
         if stater.cat_p is not None and self.cell_x == stater.cat_p[0] and self.cell_y == stater.cat_p[1]:
-            s2 = Scatter(pos_hint={'center_x': self.space.center_x,
-                                   'center_y': self.space.center_y})
-            s2.add_widget(Image(source='helpers/images/min_min_cat.png',
-                                pos_hint={'center_x': self.space.center_x,
-                                          'center_y': self.space.center_y}))
-            self.space.add_widget(s2)
-            self.space.add_widget(Label(text=CM.CAT))
+            self.space.add_widget(Image(source='helpers/images/min_cat.png'))
+            # self.space.add_widget(Label(text=CM.CAT))
 
 
 class NyanGame(BoxLayout):
@@ -130,16 +132,15 @@ class NyanGame(BoxLayout):
         horizontal_layout = BoxLayout(orientation='horizontal')
         # horizontal_layout.width, horizontal_layout.height = Window.size
 
-        with self.canvas.before:
-            Color(1, 0, 1)
-            self.rect = Rectangle(size=self.size, pos=self.pos)
+        # with self.canvas.before:
+        #     Color(1, 0, 1)
+        #     self.rect = Rectangle(size=self.size, pos=self.pos)
 
-        horizontal_layout.add_widget(
-            Label(text='Nyan', size_hint_x=2))
+        # horizontal_layout.add_widget(Label(text='Nyan', size_hint_x=2))
 
         horizontal_layout.add_widget(field_layout)
-        horizontal_layout.add_widget(Button(text='Actions', size_hint_x=3))
-        horizontal_layout.add_widget(self.status_layout)
+        # horizontal_layout.add_widget(Button(text='Actions', size_hint_x=3))
+        # horizontal_layout.add_widget(self.status_layout)
         self.add_widget(horizontal_layout)
         print('self:', self.x, self.y, self.width, self.height)
         print('vert:', horizontal_layout.x, horizontal_layout.y, horizontal_layout.width, horizontal_layout.height)

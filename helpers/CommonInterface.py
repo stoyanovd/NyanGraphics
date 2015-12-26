@@ -15,7 +15,7 @@ class GAME_CONF:
     ONE_STEP_TIME_LIMIT_SEC = 1
     REPEATS_NUMBER = 4
 
-    FIELD_SIZE = 4
+    FIELD_SIZE = 10
     assert 4 <= FIELD_SIZE <= 20
 
 

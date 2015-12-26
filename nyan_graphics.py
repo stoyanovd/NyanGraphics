@@ -53,22 +53,11 @@ class NyanCell(BoxLayout):
 
         self.space.clear_widgets()
         if stater.hunter_p is not None and self.cell_x == stater.hunter_p[0] and self.cell_y == stater.hunter_p[1]:
-            s1 = Scatter(pos_hint={'center_x': self.space.center_x,
-                                   'center_y': self.space.center_y})
-            s1.add_widget(Image(source='helpers/images/min_ar.png',
-                                pos_hint={'center_x': self.space.center_x,
-                                          'center_y': self.space.center_y}))
-            self.space.add_widget(s1)
+            self.space.add_widget(Image(source='helpers/images/hunter-icon.png'))
             self.space.add_widget(Label(text=stater.cat_direction))
 
         if stater.cat_p is not None and self.cell_x == stater.cat_p[0] and self.cell_y == stater.cat_p[1]:
-            s2 = Scatter(pos_hint={'center_x': self.space.center_x,
-                                   'center_y': self.space.center_y})
-            s2.add_widget(Image(source='helpers/images/min_min_cat.png',
-                                pos_hint={'center_x': self.space.center_x,
-                                          'center_y': self.space.center_y}))
-            self.space.add_widget(s2)
-            self.space.add_widget(Label(text=CM.CAT))
+            self.space.add_widget(Image(source='helpers/images/simple-nyan.png'))
 
 
 class NyanGame(BoxLayout):
